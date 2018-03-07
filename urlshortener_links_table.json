@@ -1,0 +1,15 @@
+{
+  "TableName": "UrlShortenerLinks",
+  "AttributeDefinitions": [{
+    "AttributeName": "short_url",
+    "AttributeType": "S"
+  }],
+  "KeySchema": [{
+    "KeyType": "HASH",
+    "AttributeName": "short_url"
+  }],
+  "ProvisionedThroughput": {
+    "WriteCapacityUnits": 5,
+    "ReadCapacityUnits": 5
+  }
+}

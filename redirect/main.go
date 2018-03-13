@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -17,10 +16,6 @@ const (
 	Region         = "us-east-1"
 )
 
-var (
-	ErrMissingShortUrl error = errors.New("short_url path parameter is missing")
-)
-
 type Link struct {
 	ShortURL string `json:"short_url"`
 	LongURL  string `json:"long_url"`
@@ -28,10 +23,7 @@ type Link struct {
 
 func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	// Get short_url parameter
-	shortURL, ok := request.PathParameters["short_url"]
-	if !ok {
-		return events.APIGatewayProxyResponse{}, ErrMissingShortUrl
-	}
+	shortURL, _ := request.PathParameters["short_url"]
 	// Start DynamoDB session
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(Region),

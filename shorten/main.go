@@ -46,8 +46,13 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	}
 	svc := dynamodb.New(sess)
 	// Generate short url
+	shortURL := shortid.MustGenerate()
+	// Because "shorten" endpoint is reserved
+	for shortURL == "shorten" {
+		shortURL = shortid.MustGenerate()
+	}
 	link := &Link{
-		ShortURL: shortid.MustGenerate(),
+		ShortURL: shortURL,
 		LongURL:  rb.URL,
 	}
 	// Marshal link to attribute value map
@@ -64,7 +69,7 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		return events.APIGatewayProxyResponse{}, err
 	}
 	// Return short url
-	response, err := json.Marshal(Response{ShortURL: link.ShortURL})
+	response, err := json.Marshal(Response{ShortURL: shortURL})
 	if err != nil {
 		return events.APIGatewayProxyResponse{}, err
 	}

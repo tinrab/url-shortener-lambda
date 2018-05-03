@@ -32,17 +32,22 @@ type Link struct {
 }
 
 func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+  // Setup CORS header
+  resp := events.APIGatewayProxyResponse{
+    Headers: make(map[string]string),
+  }
+	resp.Headers["Access-Control-Allow-Origin"] = "*"
 	// Parse request body
 	rb := Request{}
 	if err := json.Unmarshal([]byte(request.Body), &rb); err != nil {
-		return events.APIGatewayProxyResponse{}, err
+		return resp, err
 	}
 	// Start DynamoDB session
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(Region),
 	})
 	if err != nil {
-		return events.APIGatewayProxyResponse{}, err
+		return resp, err
 	}
 	svc := dynamodb.New(sess)
 	// Generate short url
@@ -58,7 +63,7 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	// Marshal link to attribute value map
 	av, err := dynamodbattribute.MarshalMap(link)
 	if err != nil {
-		return events.APIGatewayProxyResponse{}, err
+		return resp, err
 	}
 	// Put link
 	input := &dynamodb.PutItemInput{
@@ -66,17 +71,17 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		TableName: aws.String(LinksTableName),
 	}
 	if _, err = svc.PutItem(input); err != nil {
-		return events.APIGatewayProxyResponse{}, err
+		return resp, err
 	}
 	// Return short url
 	response, err := json.Marshal(Response{ShortURL: shortURL})
 	if err != nil {
-		return events.APIGatewayProxyResponse{}, err
+		return resp, err
 	}
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-		Body:       string(response),
-	}, nil
+  resp.StatusCode = http.StatusOK
+  resp.Body = string(response)
+
+	return resp, nil
 }
 
 func main() {
